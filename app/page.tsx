@@ -103,8 +103,8 @@ export default function Home() {
       rotationDeg: 10,
       desc: "a personality based cafe locator app!", 
       popupDesc: "a fully functional mock mobile app built with no frameworks, and features full backend implementation (yay for the fundamentals!). users take a personality quiz, and their results influence the local cafe recommendations!",
-      disableLink: true,
-      buttonText: "case study coming soon...", 
+      disableLink: false,
+      buttonText: "view my case study!", 
       popupColor: "#562B15", 
       textColor: "#ffffff",
       tags: [
