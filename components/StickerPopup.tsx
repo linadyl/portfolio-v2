@@ -26,11 +26,11 @@ interface StickerType {
     height: number;
   };
   rotationDeg?: number;
-  desc: string; // This is for the hover tooltip
-  popupDesc?: string; // This is for the popup description
-  popupImage?: string; // This is for the popup image
-  buttonText?: string; // This is for the button text
-  disableLink?: boolean; // This is to disable the link
+  desc: string;
+  popupDesc?: string;
+  popupImage?: string;
+  buttonText?: string;
+  disableLink?: boolean;
   popupColor?: string;
   textColor?: string;
   tags?: Array<{
@@ -52,9 +52,9 @@ interface StickerPopupProps {
 
 const Tag: React.FC<TagProps> = ({ name, color = "#d4d4d4", textColor = "#271918" }) => {
   return (
-    <div 
+    <div
       className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-mono inline-flex items-center justify-center"
-      style={{ 
+      style={{
         backgroundColor: color,
         color: textColor,
         border: "1px solid #271918",
@@ -66,10 +66,10 @@ const Tag: React.FC<TagProps> = ({ name, color = "#d4d4d4", textColor = "#271918
   );
 };
 
-const StickerPopup: React.FC<StickerPopupProps> = ({ 
-  isOpen, 
-  onClose, 
-  sticker, 
+const StickerPopup: React.FC<StickerPopupProps> = ({
+  isOpen,
+  onClose,
+  sticker,
   stickerEl,
   tags = [],
   isMobile = false
@@ -78,102 +78,93 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
-  // Handle drag functionality
+  const wasDragging = useRef(false);
+
+  const swallowIfDragging = (e: React.MouseEvent | React.PointerEvent) => {
+    if (wasDragging.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   useEffect(() => {
     if (!isDragging) return;
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - dragStart.x;
       const deltaY = e.clientY - dragStart.y;
-      
+
       setPopupPosition(prev => ({
         left: prev.left + deltaX,
         top: prev.top + deltaY
       }));
-      
+
       setDragStart({ x: e.clientX, y: e.clientY });
     };
-    
+
     const handleMouseUp = () => {
       setIsDragging(false);
+      requestAnimationFrame(() => {
+        wasDragging.current = true;
+        setTimeout(() => { wasDragging.current = false; }, 0);
+      });
     };
-    
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, dragStart]);
-  
-  // Handle click outside to close
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node) && !isDragging) {
         onClose();
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose, isDragging]);
 
-  // Calculate position based on whether mobile or desktop
   useEffect(() => {
     if (isOpen) {
       if (isMobile) {
-        // For mobile, position in the center of the viewport at a fixed position
         setPopupPosition({
-          top: window.innerHeight * 0.15, // Position at 15% from the top
-          left: (window.innerWidth - 280) / 2  // Center horizontally (assuming 280px width)
+          top: window.innerHeight * 0.15,
+          left: (window.innerWidth - 280) / 2
         });
       } else if (stickerEl) {
-        // For desktop, position near the sticker
         const stickerRect = stickerEl.getBoundingClientRect();
         const popupWidth = 380;
-        
-        // Center horizontally over the sticker
         const left = stickerRect.left + (stickerRect.width / 2) - (popupWidth / 2);
-        
-        // Position above the sticker
-        const top = stickerRect.top - 450; // Place 450px above the top of sticker
-        
-        // Handle case where popup would go off the top of the screen
+        const top = stickerRect.top - 450;
         const finalTop = top < 20 ? 20 : top;
-        
-        // Handle case where popup would go off the sides
         const finalLeft = Math.max(20, Math.min(left, window.innerWidth - popupWidth - 20));
-        
-        setPopupPosition({ 
-          top: finalTop, 
-          left: finalLeft 
+        setPopupPosition({
+          top: finalTop,
+          left: finalLeft
         });
       }
     }
   }, [isOpen, stickerEl, isMobile]);
 
   if (!sticker) return null;
-  
+
   const backgroundColor = sticker.popupColor || "#e3e7ff";
   const textColor = sticker.textColor || "#271918";
-  
-  // Use popup description if available, otherwise fall back to hover description
   const description = sticker.popupDesc || sticker.desc;
-  
-  // Use popup image if available, otherwise use the sticker image
   const imageSrc = sticker.popupImage || sticker.src;
-  
-  // Use custom button text if available, otherwise use default
   const buttonText = sticker.buttonText || "VIEW PROJECT →";
 
-  // Decide whether to render a Link or a div based on disableLink
   const ActionButton = () => {
     const buttonStyle = {
       backgroundColor: textColor,
@@ -181,34 +172,35 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
       width: '100%',
       border: `2px outset ${textColor}`
     };
-    
+
     const className = "py-2 px-4 text-center text-xs sm:text-sm cursor-pointer";
-    
-    // If link is disabled, render a div instead
+
     if (sticker.disableLink) {
       return (
-        <div 
+        <div
           className={className}
           style={{ ...buttonStyle, cursor: 'none' }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={swallowIfDragging}
         >
           {buttonText}
         </div>
       );
     }
-    
-    // Determine if the link is external (starts with http:// or https://)
+
     const isExternalLink = sticker.link.startsWith('http://') || sticker.link.startsWith('https://');
-    
-    // Otherwise render a Link component
+
     return (
-      <Link 
-        href={sticker.link} 
+      <Link
+        href={sticker.link}
         target={isExternalLink ? "_blank" : undefined}
         rel={isExternalLink ? "noopener noreferrer" : undefined}
       >
-        <div 
+        <div
           className={className}
           style={{ ...buttonStyle, cursor: 'none' }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={swallowIfDragging}
         >
           {buttonText}
         </div>
@@ -231,10 +223,9 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ duration: 0.2 }}
         >
-          {/* Retro-style popup container */}
-          <div 
+          <div
             className="p-3 sm:p-4 rounded-md shadow-md"
-            style={{ 
+            style={{
               backgroundColor: backgroundColor,
               color: textColor,
               border: `3px solid #271918`,
@@ -242,34 +233,34 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
               cursor: 'none'
             }}
             onMouseDown={(e) => {
-              // Don't start drag if clicking on interactive elements
               const target = e.target as HTMLElement;
-              const isInteractive = 
-                target.closest('button') || 
-                target.closest('a') || 
+              const isInteractive =
+                target.closest('button') ||
+                target.closest('a') ||
                 target.closest('[role="button"]') ||
                 target.tagName === 'BUTTON' ||
                 target.tagName === 'A';
-                
+
               if (!isInteractive) {
                 setIsDragging(true);
+                wasDragging.current = false;
                 setDragStart({ x: e.clientX, y: e.clientY });
                 e.preventDefault();
               }
             }}
           >
-            {/* Close button - drag handle area */}
-            <div 
+            <div
               className="flex justify-between items-center mb-2 sm:mb-3"
               style={{ cursor: 'none' }}
             >
               <div className="text-base sm:text-lg font-bold uppercase select-none">
                 {sticker.title || sticker.id}
               </div>
-              <button 
-                onClick={onClose}
+              <button
+                onClick={(e) => { swallowIfDragging(e); if (!wasDragging.current) onClose(); }}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="w-6 h-6 flex items-center justify-center rounded-full"
-                style={{ 
+                style={{
                   backgroundColor: textColor,
                   color: backgroundColor,
                   cursor: 'none'
@@ -278,9 +269,8 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
                 ×
               </button>
             </div>
-            
-            {/* Project image */}
-            <div 
+
+            <div
               className="w-full h-28 sm:h-48 mb-2 sm:mb-3 relative bg-gray-200 flex items-center justify-center overflow-hidden"
               style={{ border: `2px solid ${textColor}` }}
             >
@@ -291,24 +281,22 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
                 style={{ objectFit: 'cover' }}
               />
             </div>
-            
-            {/* Tags */}
+
             <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
               {tags.map((tag, index) => (
-                <Tag 
-                  key={index} 
-                  name={tag.name} 
+                <Tag
+                  key={index}
+                  name={tag.name}
                   color={tag.color}
                   textColor={tag.textColor}
                 />
               ))}
             </div>
-            
-            {/* Description */}
-            <div 
+
+            <div
               className="mb-3 sm:mb-4 text-xs sm:text-sm"
-              style={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.4)', 
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.4)',
                 border: `1px solid ${textColor}`,
                 padding: '8px',
                 borderRadius: '2px'
@@ -316,11 +304,9 @@ const StickerPopup: React.FC<StickerPopupProps> = ({
             >
               {description}
             </div>
-            
-            {/* Action Button (Link or div) */}
+
             <ActionButton />
-            
-            {/* Draggable indicator text */}
+
             <div className="text-center mt-2 text-[10px] opacity-50">
               (drag to move)
             </div>
