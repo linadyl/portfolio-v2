@@ -429,8 +429,6 @@ const AnimatedBook: React.FC<AnimatedBookProps> = ({ bookImageSrc, stickers = []
           stickerEl={popup.stickerEl}
           tags={popup.sticker.tags || []}
           isMobile={isMobile}
-          zIndex={popup.zIndex}
-          onInteraction={() => bringPopupToFront(popup.sticker.id)}
         />
       ))}
     </div>
