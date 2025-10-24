@@ -431,22 +431,22 @@ export default function BrewmatchCaseStudy() {
                 {
                   title: "personality quiz",
                   description: "engaging 10-question quiz that builds user's coffee personality profile",
-                  image: "/projects/brewmatch-quiz.png"
+                  image: "public/projects/brewmatch-quiz.png"
                 },
                 {
                   title: "smart matching",
                   description: "algorithm weighs multiple factors to find cafes that match your vibe",
-                  image: "/projects/brewmatch-match.png"
+                  image: "public/projects/brewmatch-match.png"
                 },
                 {
                   title: "cafe profiles",
                   description: "detailed pages with photos, menus, and personality match percentages",
-                  image: "/projects/brewmatch-profile.png"
+                  image: "public/projects/brewmatch-profile.png"
                 },
                 {
                   title: "save favorites",
                   description: "bookmark cafes and track visit history with personal notes",
-                  image: "/projects/brewmatch-favorites.png"
+                  image: "public/projects/brewmatch-favorites.png"
                 }
               ].map((feature, index) => (
                 <motion.div 
