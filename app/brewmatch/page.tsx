@@ -4,18 +4,94 @@ import Header from '@/components/Header';
 import CustomCursor from "@/components/cursor";
 import CustomHighlight from "@/components/CustomHighlight";
 import { CursorProvider } from '@/components/CursorContext';
-import { motion } from "motion/react";
-import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect } from "react";
 import WigglingAsciiBackground from "@/components/WigglingAsciiBackground";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { createPortal } from "react-dom";
 
-export default function BrewmatchCaseStudy() {
-  const images = ["/brewmatch/main1.webp", "/brewmatch/main2.webp", "/brewmatch/main3.webp","/brewmatch/main4.webp","/brewmatch/main5.webp"];
+function FixedAscii() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, opacity: 0.3, pointerEvents: 'none', zIndex: 0 }}>
+      <WigglingAsciiBackground />
+    </div>,
+    document.body
+  );
+}
+
+function HeroCarousel({ images }: { images: string[] }) {
   const [current, setCurrent] = useState(0);
   const prevImage = () => setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   const nextImage = () => setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+
+  return (
+    <motion.section 
+      className="px-6 sm:px-10 md:px-16 lg:px-24 xl:px-44 mb-16 transform-gpu"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+    >
+      <div className="flex items-center gap-4">
+        <button
+          onClick={prevImage}
+          className="shrink-0 bg-foreground text-background p-2 rounded-full hover:opacity-90 transition"
+          aria-label="Previous image"
+          style={{ cursor: 'none' }}
+        >
+          <ChevronLeft size={24} />
+        </button>
+
+        <div className="relative w-full h-[400px] sm:h-[500px] md:h-[700px] rounded-lg overflow-hidden border-2 border-foreground"
+             style={{ boxShadow: '4px 4px 0 var(--foreground)' }}>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={images[current]}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28 }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={images[current]}
+                alt="Brewmatch app mockup"
+                fill
+                style={{ objectFit: 'cover' }}
+                priority={current === 0}
+              />
+            </motion.div>
+          </AnimatePresence>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-2 w-2 rounded-full transition-all ${idx === current ? "bg-foreground" : "bg-foreground/40"}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={nextImage}
+          className="shrink-0 bg-foreground text-background p-2 rounded-full hover:opacity-90 transition"
+          aria-label="Next image"
+          style={{ cursor: 'none' }}
+        >
+          <ChevronRight size={24} />
+        </button>
+      </div>
+    </motion.section>
+  );
+}
+
+export default function BrewmatchCaseStudy() {
+  const images = ["/brewmatch/main1.webp", "/brewmatch/main2.webp", "/brewmatch/main3.webp","/brewmatch/main4.webp","/brewmatch/main5.webp"];
 
   const projectDetails = {
     title: "brewmatch",
@@ -45,8 +121,6 @@ export default function BrewmatchCaseStudy() {
       className={`rounded-lg border-2 border-foreground/10 ${className}`}
       style={{ 
         backgroundColor: 'rgba(255, 253, 249, 0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)', 
         boxShadow: '0 8px 32px rgba(39, 25, 24, 0.08)',
       }}
     >
@@ -56,11 +130,8 @@ export default function BrewmatchCaseStudy() {
 
   return (
     <CursorProvider>
-      <main className="relative overflow-x-hidden min-h-screen font-mono">
-        <div style={{ opacity: 0.3 }}>
-          <WigglingAsciiBackground />
-        </div>
-        
+      <FixedAscii />
+      <main className="relative z-10 overflow-x-hidden min-h-screen font-mono">
         <CustomCursor />
         <Header />
         
@@ -70,6 +141,7 @@ export default function BrewmatchCaseStudy() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              className="transform-gpu"
             >
               <Link href="/" className="inline-flex items-center text-accent hover:opacity-80 mb-8" style={{ cursor: 'none' }}>
                 <span className="mr-2">←</span>
@@ -117,58 +189,13 @@ export default function BrewmatchCaseStudy() {
           </ContentCard>
         </section>
 
-        <motion.section 
-          className="px-6 sm:px-10 md:px-16 lg:px-24 xl:px-44 mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-4">
-            <button
-              onClick={prevImage}
-              className="shrink-0 bg-foreground text-background p-2 rounded-full hover:opacity-90 transition"
-              aria-label="Previous image"
-              style={{ cursor: 'none' }}
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            <div className="relative w-full h-[400px] sm:h-[500px] md:h-[700px] rounded-lg overflow-hidden border-2 border-foreground"
-                 style={{ boxShadow: '4px 4px 0 var(--foreground)' }}>
-              <Image
-                key={images[current]}
-                src={images[current]}
-                alt="Brewmatch app mockup"
-                fill
-                style={{ objectFit: 'cover' }}
-                priority
-              />
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {images.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-2 w-2 rounded-full transition-all ${idx === current ? "bg-foreground" : "bg-foreground/40"}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={nextImage}
-              className="shrink-0 bg-foreground text-background p-2 rounded-full hover:opacity-90 transition"
-              aria-label="Next image"
-              style={{ cursor: 'none' }}
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-        </motion.section>
+        <HeroCarousel images={images} />
 
         <div className="px-6 sm:px-10 md:px-16 lg:px-24 xl:px-44 max-w-6xl mx-auto mb-20">
           <ContentCard className="p-8 sm:p-10 md:p-12 lg:p-16">
             
             <motion.section 
-              className="mb-16"
+              className="mb-16 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -185,40 +212,39 @@ export default function BrewmatchCaseStudy() {
                   creative problem-solving.
                 </p>
                 <p>
-                    Our goal was to create a user-friendly platform that helps coffee lovers find cafés that match their unique preferences while supporting local businesses. Through personality-based recommendations and seamless event booking, BrewMatch fosters a stronger community coffee culture.
+                  Our goal was to create a user-friendly platform that helps coffee lovers find cafés that match their unique preferences while supporting local businesses. Through personality-based recommendations and seamless event booking, BrewMatch fosters a stronger community coffee culture.
                 </p>
               </div>
             </motion.section>
 
-
             <motion.section
-                className="mb-16"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
+              className="mb-16 transform-gpu"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-                <h2 className="text-2xl sm:text-3xl md:text-4xl mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl mb-6">
                 <CustomHighlight color="#3f764c" opacity={0.4}>user research & early insights</CustomHighlight>
-                </h2>
+              </h2>
 
-                <div className="space-y-4 text-base sm:text-lg leading-relaxed mb-8">
-                    <p>
-                        We conducted interviews at multiple Toronto cafés, speaking with students, professionals, and remote workers aged 21-58. The key takeaways shaped our approach:
-                    </p>
-                    <p>
-                        <br></br>🔹 Users seek cafés that align with their personality and work/social preferences. 
-                        <br></br>🔹 Many want real-time updates on seating availability and café events. 
-                        <br></br>🔹 Independent café owners need better tools to reach their target audience.
-                    </p>
-                    <p>
-                        Based on these insights, we designed a personality quiz to match users with cafés that suit their style and introduced filters for ambiance, amenities, and work-friendly environments.
-                    </p>
-                </div>
+              <div className="space-y-4 text-base sm:text-lg leading-relaxed mb-8">
+                <p>
+                  We conducted interviews at multiple Toronto cafés, speaking with students, professionals, and remote workers aged 21-58. The key takeaways shaped our approach:
+                </p>
+                <p>
+                  <br/>🔹 Users seek cafés that align with their personality and work/social preferences. 
+                  <br/>🔹 Many want real-time updates on seating availability and café events. 
+                  <br/>🔹 Independent café owners need better tools to reach their target audience.
+                </p>
+                <p>
+                  Based on these insights, we designed a personality quiz to match users with cafés that suit their style and introduced filters for ambiance, amenities, and work-friendly environments.
+                </p>
+              </div>
             </motion.section>
 
             <motion.section 
-              className="mb-16"
+              className="mb-16 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -238,13 +264,11 @@ export default function BrewmatchCaseStudy() {
                   experiential aspects that make a cafe feel like &quot;your place.&quot;
                 </p>
                 <p>
-                    Our research showed that: 
-                    <br></br>
-                    <br></br>🏠 38% of Canadians prefer independent cafés over chain brands.
-                    <br></br>🧑🏼‍💻 65% of remote workers use cafés as a workspace.
-                    <br></br>💵 40% of Canadians are willing to pay more for specialty coffee.
-
-                    This highlighted a demand for a more personalized approach to coffee shop discovery.
+                  Our research showed that: 
+                  <br/>
+                  <br/>🏠 38% of Canadians prefer independent cafés over chain brands.
+                  <br/>🧑🏼‍💻 65% of remote workers use cafés as a workspace.
+                  <br/>💵 40% of Canadians are willing to pay more for specialty coffee.
                 </p>
               </div>
 
@@ -266,7 +290,7 @@ export default function BrewmatchCaseStudy() {
             </motion.section>
 
             <motion.section 
-              className="mb-16"
+              className="mb-16 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -320,7 +344,7 @@ export default function BrewmatchCaseStudy() {
             </motion.section>
 
             <motion.section 
-              className="mb-16"
+              className="mb-16 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -358,7 +382,7 @@ export default function BrewmatchCaseStudy() {
             </motion.section>
 
             <motion.section 
-              className="mb-16"
+              className="mb-16 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -391,7 +415,7 @@ export default function BrewmatchCaseStudy() {
             </motion.section>
 
             <motion.section 
-              className="mb-0"
+              className="mb-0 transform-gpu"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -421,6 +445,7 @@ export default function BrewmatchCaseStudy() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="transform-gpu"
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl mb-6 text-center">
               <CustomHighlight color="#3f764c" opacity={0.4}>key features</CustomHighlight>
@@ -477,7 +502,7 @@ export default function BrewmatchCaseStudy() {
         </div>
 
         <motion.section 
-          className="px-6 sm:px-10 md:px-16 lg:px-24 xl:px-44 pb-20"
+          className="px-6 sm:px-10 md:px-16 lg:px-24 xl:px-44 pb-20 transform-gpu"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -487,7 +512,7 @@ export default function BrewmatchCaseStudy() {
             <div className="text-center">
               <p className="text-lg mb-6 opacity-80">
                 watch our demo video below!
-                <br></br>
+                <br/>
                 (made by me using adobe after effects)
               </p>
               <div className="flex flex-wrap justify-center gap-4">
