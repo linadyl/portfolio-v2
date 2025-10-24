@@ -5,29 +5,17 @@ import CustomCursor from "@/components/cursor";
 import CustomHighlight from "@/components/CustomHighlight";
 import { CursorProvider } from '@/components/CursorContext';
 import { motion } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import WigglingAsciiBackground from "@/components/WigglingAsciiBackground";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function BrewmatchCaseStudy() {
-  const [isMobile, setIsMobile] = useState(false);
   const images = ["/brewmatch/main1.webp", "/brewmatch/main2.webp", "/brewmatch/main3.webp","/brewmatch/main4.webp","/brewmatch/main5.webp"];
   const [current, setCurrent] = useState(0);
   const prevImage = () => setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   const nextImage = () => setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const projectDetails = {
     title: "brewmatch",
@@ -36,7 +24,7 @@ export default function BrewmatchCaseStudy() {
     role: "Full Stack Developer/UI Designer",
     team: "(1) Product Designer, (1) UX Researcher, (1) Developer",
     tools: ["HTML", "CSS", "Vanilla JavaScript", "PHP", "SQL"],
-    github: "https://drive.google.com/file/d/1rjX11ATmVMlHZ1bu5-6AbVdAta-r5dQX/view", // Update this
+    github: "https://drive.google.com/file/d/1rjX11ATmVMlHZ1bu5-6AbVdAta-r5dQX/view",
   };
 
   const Tag = ({ name, color = "#562B15", textColor = "#ffffff" }: { name: string; color?: string; textColor?: string }) => (
@@ -241,13 +229,13 @@ export default function BrewmatchCaseStudy() {
               </h2>
               <div className="space-y-4 text-base sm:text-lg leading-relaxed mb-8">
                 <p>
-                  finding the perfect cafe isn't just about proximity or ratings. coffee culture is deeply 
+                  finding the perfect cafe isn&apos;t just about proximity or ratings. coffee culture is deeply 
                   personal - some seek quiet corners for deep work, others want vibrant spaces for socializing, 
                   and many fall somewhere in between.
                 </p>
                 <p>
                   existing cafe locators focus on practical metrics (distance, price, ratings) but miss the 
-                  experiential aspects that make a cafe feel like "your place."
+                  experiential aspects that make a cafe feel like &quot;your place.&quot;
                 </p>
                 <p>
                     Our research showed that: 
@@ -298,7 +286,7 @@ export default function BrewmatchCaseStudy() {
                   </p>
                   <div className="bg-foreground/5 rounded-lg p-4 border border-foreground/20">
                     <code className="text-sm text-accent">
-                      // Custom personality algorithm snippet<br/>
+                      &#47;&#47; Custom personality algorithm snippet<br/>
                       function calculateCafeMatch(userProfile, cafeData) &#123;<br/>
                       &nbsp;&nbsp;const weights = &#123;<br/>
                       &nbsp;&nbsp;&nbsp;&nbsp;coffee: 0.3,<br/>
@@ -443,22 +431,22 @@ export default function BrewmatchCaseStudy() {
                 {
                   title: "personality quiz",
                   description: "engaging 10-question quiz that builds user's coffee personality profile",
-                  image: "/brewmatch/feature1.png"
+                  image: "/projects/brewmatch-quiz.png"
                 },
                 {
-                  title: "filtering system",
-                  description: "search by distance, ambiance, menu, price range, and amenities",
-                  image: "/brewmatch/feature2.png"
+                  title: "smart matching",
+                  description: "algorithm weighs multiple factors to find cafes that match your vibe",
+                  image: "/projects/brewmatch-match.png"
                 },
                 {
-                  title: "user & cafe profiles",
-                  description: "detailed pages with photos, menus, and local event details",
-                  image: "/brewmatch/feature3.png"
+                  title: "cafe profiles",
+                  description: "detailed pages with photos, menus, and personality match percentages",
+                  image: "/projects/brewmatch-profile.png"
                 },
                 {
-                  title: "event booking",
-                  description: "browse and choose seats for local events",
-                  image: "/brewmatch/feature4.png"
+                  title: "save favorites",
+                  description: "bookmark cafes and track visit history with personal notes",
+                  image: "/projects/brewmatch-favorites.png"
                 }
               ].map((feature, index) => (
                 <motion.div 
@@ -471,16 +459,14 @@ export default function BrewmatchCaseStudy() {
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 400 }}
                 >
-                  <div className="relative h-[300px] sm:h-[380px] md:h-[460px] mb-4 bg-gray-100 rounded">
-                    <div className="absolute inset-0 flex items-center justify-center text-accent opacity-100">
-                      <Image
-                        src={feature.image}
-                        alt={feature.title}
-                        fill
-                        style={{ objectFit: "cover" }}
-                        sizes="(max-width: 768px) 100vw, 50vw"
+                  <div className="relative h-[300px] sm:h-[380px] md:h-[460px] mb-4 bg-gray-100 rounded overflow-hidden">
+                    <Image
+                      src={feature.image}
+                      alt={feature.title}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
-                    </div>
                   </div>
                   <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
                   <p className="text-sm opacity-80">{feature.description}</p>
